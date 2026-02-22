@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pig.E Connect Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">pig.E</h1>
+    <p class="subtitle">Step 1: Connect your bank account with Plaid Sandbox.</p>
+
+    <div class="top-actions">
+      <button id="connectBankBtn">Connect Bank (Sandbox)</button>
+    </div>
+
+    <div id="status" class="status">Waiting for bank connection...</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

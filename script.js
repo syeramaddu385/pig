@@ -1,4 +1,5 @@
 const API_BASE = 'http://localhost:3000';
+const HISTORY_KEY = 'pigEHistory';
 
 let plaidHandler;
 const state = {
@@ -11,14 +12,27 @@ const state = {
 };
 
 function updateTotals() {
-  document.getElementById('totalSaved').textContent = state.total.toFixed(2);
+  const totalSaved = document.getElementById('totalSaved');
+  if (!totalSaved) {
+    return;
+  }
+  totalSaved.textContent = state.total.toFixed(2);
   document.getElementById('investmentsTotal').textContent = state.allocations.investments.toFixed(2);
   document.getElementById('longTermTotal').textContent = state.allocations.longTermGoal.toFixed(2);
   document.getElementById('generalTotal').textContent = state.allocations.generalSavings.toFixed(2);
 }
 
 function setStatus(message) {
-  document.getElementById('status').textContent = message;
+  const status = document.getElementById('status');
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function saveHistoryEntry(entry) {
+  const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  current.unshift({ ...entry, decided_at: new Date().toISOString() });
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(current.slice(0, 200)));
 }
 
 async function getErrorMessage(response, fallbackMessage) {
@@ -34,14 +48,26 @@ function roundUpAmount(amount) {
   return Math.max(0, Number((Math.ceil(amount) - amount).toFixed(2)));
 }
 
-function applyRoundUp(amount, bucket) {
+function addSavings(amount, bucket) {
   state.total += amount;
   state.allocations[bucket] += amount;
   updateTotals();
 }
 
+function removeCard(card) {
+  card.remove();
+  const container = document.getElementById('transactions');
+  if (!container.children.length) {
+    container.innerHTML = '<p>All recent transactions processed.</p>';
+  }
+}
+
 function renderTransactions(transactions) {
   const container = document.getElementById('transactions');
+  if (!container) {
+    return;
+  }
+
   container.innerHTML = '';
 
   const debitTransactions = transactions
@@ -58,6 +84,7 @@ function renderTransactions(transactions) {
     card.className = 'transaction-card';
 
     const roundUp = roundUpAmount(tx.amount);
+    const allowPercent = tx.amount > 50;
 
     card.innerHTML = `
       <div class="transaction-header">
@@ -66,32 +93,50 @@ function renderTransactions(transactions) {
       </div>
       <small>Round up amount: $${roundUp.toFixed(2)}</small>
       <div class="transaction-actions">
-        <select>
+        <select class="bucket-select">
           <option value="investments">Investments</option>
           <option value="longTermGoal">Long-Term Goal</option>
           <option value="generalSavings">General Savings</option>
         </select>
-        <button>Round Up</button>
-        <button>Skip</button>
+        <button class="round-btn">Round Up</button>
+        ${allowPercent ? '<input class="percent-input" type="number" min="1" max="100" value="5" />' : ''}
+        ${allowPercent ? '<button class="percent-btn">Save %</button>' : ''}
+        <button class="skip-btn">Skip</button>
       </div>
     `;
 
-    const select = card.querySelector('select');
-    const [roundBtn, skipBtn] = card.querySelectorAll('button');
+    const select = card.querySelector('.bucket-select');
+    const roundBtn = card.querySelector('.round-btn');
+    const skipBtn = card.querySelector('.skip-btn');
+    const percentBtn = card.querySelector('.percent-btn');
+    const percentInput = card.querySelector('.percent-input');
 
     roundBtn.addEventListener('click', () => {
-      applyRoundUp(roundUp, select.value);
+      addSavings(roundUp, select.value);
+      saveHistoryEntry({ transaction_name: tx.name, transaction_amount: tx.amount, decision: 'round_up', amount_saved: roundUp, bucket: select.value });
       setStatus(`Saved $${roundUp.toFixed(2)} from ${tx.name}.`);
-      roundBtn.disabled = true;
-      skipBtn.disabled = true;
-      select.disabled = true;
+      removeCard(card);
     });
 
+    if (percentBtn && percentInput) {
+      percentBtn.addEventListener('click', () => {
+        const percent = Number(percentInput.value);
+        if (!percent || percent < 1 || percent > 100) {
+          setStatus('Please enter a percent between 1 and 100.');
+          return;
+        }
+        const percentAmount = Number((tx.amount * (percent / 100)).toFixed(2));
+        addSavings(percentAmount, select.value);
+        saveHistoryEntry({ transaction_name: tx.name, transaction_amount: tx.amount, decision: `save_${percent}_percent`, amount_saved: percentAmount, bucket: select.value });
+        setStatus(`Saved ${percent}% ($${percentAmount.toFixed(2)}) from ${tx.name}.`);
+        removeCard(card);
+      });
+    }
+
     skipBtn.addEventListener('click', () => {
+      saveHistoryEntry({ transaction_name: tx.name, transaction_amount: tx.amount, decision: 'skip', amount_saved: 0, bucket: null });
       setStatus(`Skipped ${tx.name}.`);
-      roundBtn.disabled = true;
-      skipBtn.disabled = true;
-      select.disabled = true;
+      removeCard(card);
     });
 
     container.appendChild(card);
@@ -137,8 +182,8 @@ async function initializePlaid() {
     token: linkToken,
     onSuccess: async (publicToken) => {
       await exchangePublicToken(publicToken);
-      setStatus('Bank connected. Loading transactions...');
-      await fetchTransactions();
+      setStatus('Bank connected. Redirecting to transactions...');
+      window.location.href = 'transactions.html';
     },
     onExit: () => setStatus('Plaid Link closed.'),
   });
@@ -156,5 +201,26 @@ async function connectBank() {
   }
 }
 
-document.getElementById('connectBankBtn').addEventListener('click', connectBank);
-updateTotals();
+function initConnectPage() {
+  const connectBtn = document.getElementById('connectBankBtn');
+  if (!connectBtn) {
+    return;
+  }
+  connectBtn.addEventListener('click', connectBank);
+}
+
+async function initTransactionsPage() {
+  if (!document.getElementById('transactions')) {
+    return;
+  }
+  updateTotals();
+  try {
+    await fetchTransactions();
+    setStatus('Transactions loaded.');
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+initConnectPage();
+initTransactionsPage();
