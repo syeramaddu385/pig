@@ -18,14 +18,12 @@ const configuration = new Configuration({
 });
 
 const client = new PlaidApi(configuration);
-
 let accessToken = null;
 
-// Create Link Token
 app.post('/create_link_token', async (req, res) => {
   try {
     const response = await client.linkTokenCreate({
-      user: { client_user_id: 'pig-e-user' },
+      user: { client_user_id: `pig-user-${Date.now()}` },
       client_name: 'Pig.e',
       products: ['transactions'],
       country_codes: ['US'],
@@ -33,40 +31,44 @@ app.post('/create_link_token', async (req, res) => {
     });
 
     res.json(response.data);
-  } catch (err) {
-    res.status(500).json(err);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create link token', error: error.response?.data || error.message });
   }
 });
 
-// Exchange public token
 app.post('/exchange_public_token', async (req, res) => {
   try {
-    const { public_token } = req.body;
+    const { public_token: publicToken } = req.body;
 
-    const response = await client.itemPublicTokenExchange({
-      public_token: public_token,
-    });
+    if (!publicToken) {
+      return res.status(400).json({ message: 'public_token is required' });
+    }
 
+    const response = await client.itemPublicTokenExchange({ public_token: publicToken });
     accessToken = response.data.access_token;
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json(err);
+    return res.json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to exchange public token', error: error.response?.data || error.message });
   }
 });
 
-// Get transactions
 app.get('/transactions', async (req, res) => {
   try {
+    if (!accessToken) {
+      return res.status(400).json({ message: 'Connect a bank first.' });
+    }
+
     const response = await client.transactionsGet({
       access_token: accessToken,
       start_date: '2023-01-01',
       end_date: new Date().toISOString().split('T')[0],
     });
 
-    res.json(response.data.transactions);
-  } catch (err) {
-    res.status(500).json(err);
+    return res.json(response.data.transactions);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to fetch transactions', error: error.response?.data || error.message });
   }
 });
 
-app.listen(3000, () => console.log("Pig.e backend running on port 3000 🐷"));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Pig.e backend running on port ${port} 🐷`));
