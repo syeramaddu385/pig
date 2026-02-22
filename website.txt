@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pig.e 🐷</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+<style>
+:root {
+  --pink: #ffc0cb;
+  --darkpink: #ff8fab;
+  --cream: #fff5e4;
+  --brown: #7b4b3a;
+  --white: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Baloo 2', cursive;
+  background: var(--cream);
+  color: var(--brown);
+}
+
+h1, h2, h3 {
+  margin: 0.5em 0;
+}
+
+button {
+  background: var(--darkpink);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+input {
+  padding: 8px;
+  border-radius: 15px;
+  border: 1px solid var(--pink);
+  margin: 5px 0;
+}
+
+.container {
+  padding: 20px;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.card {
+  background: var(--white);
+  padding: 25px;
+  border-radius: 25px;
+  box-shadow: 0 8px 20px rgba(255, 192, 203, 0.3);
+  width: 300px;
+  text-align: center;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  background: var(--pink);
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.navbar button {
+  background: transparent;
+  color: var(--brown);
+}
+
+.pig-graphic {
+  font-size: 80px;
+  margin: 10px 0;
+}
+
+.transaction {
+  background: white;
+  padding: 10px;
+  border-radius: 15px;
+  margin: 10px 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+
+.savings-display {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="center">
+  <div class="card">
+    <h1>🐷 Pig.e</h1>
+    <p>Save smart. Save cute.</p>
+
+    <input type="email" placeholder="Email"><br>
+    <input type="password" placeholder="Password"><br>
+
+    <button onclick="connectPlaid()">Connect Bank via Plaid</button><br><br>
+    <button onclick="enterApp()">Sign In / Sign Up</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden container">
+
+  <!-- HOMEBASE -->
+  <div id="homePage">
+    <h2>Homebase 🏠</h2>
+    <div class="pig-graphic">🐷💗</div>
+
+    <p>Log your round-up or savings %</p>
+
+    <input type="number" id="transactionAmount" placeholder="Transaction Amount ($)">
+    <br>
+    <button onclick="roundUp()">Round Up</button>
+    <br><br>
+    <input type="number" id="percentAmount" placeholder="Percent (e.g. 10)">
+    <br>
+    <button onclick="percentSave()">Save %</button>
+
+    <div class="savings-display">
+      Savings: $<span id="savingsTotal">0.00</span>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div id="transactionsPage" class="hidden">
+    <h2>Transactions 📜</h2>
+    <div id="transactionList"></div>
+  </div>
+
+  <!-- PIGGY BANK -->
+  <div id="savingsPage" class="hidden">
+    <h2>My Piggy Bank 🐖</h2>
+    <div class="pig-graphic">🐷💰</div>
+    <div class="savings-display">
+      Total Saved: $<span id="savingsTotal2">0.00</span>
+    </div>
+    <button onclick="addManualSavings()">Add $5 Bonus 💖</button>
+  </div>
+
+  <!-- NAVIGATION -->
+  <div class="navbar">
+    <button onclick="showPage('home')">🏠</button>
+    <button onclick="showPage('transactions')">📜</button>
+    <button onclick="showPage('savings')">🐷</button>
+  </div>
+
+</div>
+
+<script>
+let savings = 0;
+
+// --- Connect Bank via Plaid ---
+async function connectPlaid() {
+    // Get Link token from backend
+    const res = await fetch('http://127.0.0.1:8001/create_link_token', { method: 'POST' });
+    const data = await res.json();
+    const linkToken = data.link_token;
+
+    const handler = Plaid.create({
+        token: linkToken,
+        onSuccess: async function(public_token) {
+            await fetch('http://127.0.0.1:8001/exchange_public_token', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({public_token})
+            });
+            alert("Bank connected! 🐷💗");
+            loadTransactions(); // fetch transactions immediately
+        },
+        onExit: function(err, metadata) {
+            if(err) console.log("Plaid exited with error:", err);
+        }
+    });
+
+    handler.open();
+}
+
+// --- Load transactions from backend ---
+async function loadTransactions() {
+    const res = await fetch('http://127.0.0.1:8001/transactions');
+    const data = await res.json();
+
+    const list = document.getElementById("transactionList");
+    list.innerHTML = ""; // clear old transactions
+
+    data.transactions.forEach(tx => {
+        const div = document.createElement("div");
+        div.className = "transaction";
+        div.innerText = `${tx.name} - $${tx.amount}`;
+        list.appendChild(div);
+    });
+}
+
+// --- Page navigation ---
+function enterApp() {
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+}
+
+function showPage(page) {
+  document.getElementById("homePage").classList.add("hidden");
+  document.getElementById("transactionsPage").classList.add("hidden");
+  document.getElementById("savingsPage").classList.add("hidden");
+
+  if(page === "home") document.getElementById("homePage").classList.remove("hidden");
+  if(page === "transactions") {
+    document.getElementById("transactionsPage").classList.remove("hidden");
+    loadTransactions(); // refresh when opening transactions page
+  }
+  if(page === "savings") document.getElementById("savingsPage").classList.remove("hidden");
+}
+
+// --- Savings logic ---
+function updateSavingsDisplay() {
+  document.getElementById("savingsTotal").innerText = savings.toFixed(2);
+  document.getElementById("savingsTotal2").innerText = savings.toFixed(2);
+}
+
+function addTransaction(text) {
+  let div = document.createElement("div");
+  div.className = "transaction";
+  div.innerText = text;
+  document.getElementById("transactionList").appendChild(div);
+}
+
+function roundUp() {
+  let amount = parseFloat(document.getElementById("transactionAmount").value);
+  if(!amount) return;
+  let rounded = Math.ceil(amount);
+  let difference = rounded - amount;
+  savings += difference;
+  addTransaction(`Rounded $${amount.toFixed(2)} → Saved $${difference.toFixed(2)} 🐷`);
+  updateSavingsDisplay();
+}
+
+function percentSave() {
+  let amount = parseFloat(document.getElementById("transactionAmount").value);
+  let percent = parseFloat(document.getElementById("percentAmount").value);
+  if(!amount || !percent) return;
+  let saved = (amount * percent) / 100;
+  savings += saved;
+  addTransaction(`Saved ${percent}% of $${amount.toFixed(2)} → $${saved.toFixed(2)} 💗`);
+  updateSavingsDisplay();
+}
+
+function addManualSavings() {
+  savings += 5;
+  addTransaction("Added $5 Bonus 💖");
+  updateSavingsDisplay();
+}
+</script>
+
+</body>
+</html>

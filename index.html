@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pig.E</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --pink: #f8c8dc;
+    --darkpink: #f4a6c1;
+    --cream: #fff6e9;
+    --accent: #ff8fb1;
+}
+
+body {
+    margin: 0;
+    font-family: 'Quicksand', sans-serif;
+    background: var(--cream);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    width: 400px;
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.logo {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 15px;
+    border: 2px solid var(--pink);
+    outline: none;
+    font-family: inherit;
+}
+
+button {
+    width: 95%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 20px;
+    border: none;
+    background: var(--pink);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+button:hover {
+    background: var(--darkpink);
+}
+
+.switch {
+    margin-top: 15px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--accent);
+}
+
+.hidden {
+    display: none;
+}
+
+.dashboard {
+    display: none;
+}
+
+.calculator {
+    margin-top: 20px;
+    background: var(--cream);
+    padding: 15px;
+    border-radius: 20px;
+}
+
+.bank-connect {
+    background: var(--pink);
+    border-radius: 20px;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.savings-display {
+    font-size: 20px;
+    margin: 15px 0;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.choice-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.choice-buttons button {
+    width: 45%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">pig.E</div>
+    <div class="subtitle">Saving made easy</div>
+
+    <!-- LOGIN -->
+    <div id="login">
+        <input type="email" placeholder="Email">
+        <input type="password" placeholder="Password">
+        <button onclick="showDashboard()">Login</button>
+        <div class="switch" onclick="showSignup()">Don't have an account? Sign up</div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signup" class="hidden">
+        <input type="text" placeholder="Full Name">
+        <input type="email" placeholder="Email Address">
+        <input type="password" placeholder="Create Password">
+        <button onclick="showDashboard()">Create Account</button>
+        <div class="switch" onclick="showLogin()">Already have an account? Login</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="dashboard">
+        <h3>Welcome to your Savings</h3>
+
+        <div class="bank-connect">
+            Connect your bank account
+            <br>
+            <button onclick="alert('Bank connected!')">Connect Bank</button>
+        </div>
+
+        <div class="savings-display">
+            Total Saved: $<span id="totalSaved">0.00</span>
+        </div>
+
+        <div class="calculator">
+            <h4>Round-Up Calculator</h4>
+            <input type="number" id="purchaseAmount" placeholder="Enter purchase amount">
+            <div class="choice-buttons">
+                <button onclick="saveRoundUp(true)">Save</button>
+                <button onclick="saveRoundUp(false)">Skip</button>
+            </div>
+            <p id="roundUpResult"></p>
+
+            <h4>Percentage Savings</h4>
+            <input type="number" id="percentAmount" placeholder="Enter purchase amount">
+            <input type="number" id="percentRate" placeholder="Enter % to save">
+            <div class="choice-buttons">
+                <button onclick="savePercent(true)">Save</button>
+                <button onclick="savePercent(false)">Skip</button>
+            </div>
+            <p id="percentResult"></p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let totalSaved = 0;
+
+function showSignup() {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("signup").classList.remove("hidden");
+}
+
+function showLogin() {
+    document.getElementById("signup").classList.add("hidden");
+    document.getElementById("login").classList.remove("hidden");
+}
+
+function showDashboard() {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("signup").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+}
+
+function saveRoundUp(save) {
+    let amount = parseFloat(document.getElementById("purchaseAmount").value);
+    if (isNaN(amount)) return;
+    let rounded = Math.ceil(amount);
+    let difference = parseFloat((rounded - amount).toFixed(2));
+    if (save) {
+        totalSaved += difference;
+        document.getElementById("roundUpResult").innerText =
+            "You saved $" + difference;
+        updateTotalSaved();
+    } else {
+        document.getElementById("roundUpResult").innerText = "Skipped saving";
+    }
+}
+
+function savePercent(save) {
+    let amount = parseFloat(document.getElementById("percentAmount").value);
+    let rate = parseFloat(document.getElementById("percentRate").value);
+    if (isNaN(amount) || isNaN(rate)) return;
+    let savings = parseFloat((amount * (rate / 100)).toFixed(2));
+    if (save) {
+        totalSaved += savings;
+        document.getElementById("percentResult").innerText =
+            "You saved $" + savings;
+        updateTotalSaved();
+    } else {
+        document.getElementById("percentResult").innerText = "Skipped saving";
+    }
+}
+
+function updateTotalSaved() {
+    document.getElementById("totalSaved").innerText = totalSaved.toFixed(2);
+}
+</script>
+
+</body>
+</html>
