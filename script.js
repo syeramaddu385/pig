@@ -21,6 +21,15 @@ function setStatus(message) {
   document.getElementById('status').textContent = message;
 }
 
+async function getErrorMessage(response, fallbackMessage) {
+  try {
+    const body = await response.json();
+    return body?.message || body?.plaid_error?.error_message || JSON.stringify(body);
+  } catch {
+    return fallbackMessage;
+  }
+}
+
 function roundUpAmount(amount) {
   return Math.max(0, Number((Math.ceil(amount) - amount).toFixed(2)));
 }
@@ -40,7 +49,7 @@ function renderTransactions(transactions) {
     .slice(0, 8);
 
   if (!debitTransactions.length) {
-    container.innerHTML = '<p>No transactions found yet in sandbox.</p>';
+    container.innerHTML = '<p>No recent debit transactions found in sandbox.</p>';
     return;
   }
 
@@ -92,7 +101,7 @@ function renderTransactions(transactions) {
 async function fetchTransactions() {
   const response = await fetch(`${API_BASE}/transactions`);
   if (!response.ok) {
-    throw new Error('Unable to fetch transactions. Connect bank first.');
+    throw new Error(await getErrorMessage(response, 'Unable to fetch transactions.'));
   }
 
   const data = await response.json();
@@ -102,7 +111,7 @@ async function fetchTransactions() {
 async function createLinkToken() {
   const response = await fetch(`${API_BASE}/create_link_token`, { method: 'POST' });
   if (!response.ok) {
-    throw new Error('Unable to create link token. Check Plaid env values.');
+    throw new Error(await getErrorMessage(response, 'Unable to create link token.'));
   }
 
   const data = await response.json();
@@ -117,7 +126,7 @@ async function exchangePublicToken(publicToken) {
   });
 
   if (!response.ok) {
-    throw new Error('Unable to exchange public token.');
+    throw new Error(await getErrorMessage(response, 'Unable to exchange public token.'));
   }
 }
 
