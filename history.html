@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pig.E History</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">pig.E History</h1>
+    <p class="subtitle">Round Up / Save % / Skip decisions</p>
+    <a class="history-link" href="transactions.html">← Back to Dashboard</a>
+    <div id="historyList" class="transactions"></div>
+  </div>
+  <script>
+    const HISTORY_KEY = 'pigEHistory';
+    const list = document.getElementById('historyList');
+    const data = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+
+    if (!data.length) {
+      list.innerHTML = '<p>No decisions yet.</p>';
+    } else {
+      data.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'transaction-card';
+        card.innerHTML = `
+          <div class="transaction-header">
+            <strong>${item.transaction_name}</strong>
+            <span>$${Number(item.transaction_amount).toFixed(2)}</span>
+          </div>
+          <small>Decision: ${item.decision}</small><br />
+          <small>Saved: $${Number(item.amount_saved || 0).toFixed(2)} ${item.bucket ? `→ ${item.bucket}` : ''}</small><br />
+          <small>${new Date(item.decided_at).toLocaleString()}</small>
+        `;
+        list.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

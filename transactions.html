@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pig.E Transactions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="piggy-hero">🐷 Piggy Bank</div>
+    <h1 class="logo">Recent Transactions</h1>
+    <p class="subtitle">Step 2: Choose Round Up, Save %, or Skip.</p>
+
+    <div class="top-actions">
+      <a class="history-link" href="history.html">View History</a>
+    </div>
+
+    <div id="status" class="status">Loading transactions...</div>
+
+    <div class="totals">
+      <p><strong>Total Piggy Bank:</strong> $<span id="totalSaved">0.00</span></p>
+      <p>Investments: $<span id="investmentsTotal">0.00</span></p>
+      <p>Long-Term Goal: $<span id="longTermTotal">0.00</span></p>
+      <p>General Savings: $<span id="generalTotal">0.00</span></p>
+    </div>
+
+    <div id="transactions" class="transactions"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
