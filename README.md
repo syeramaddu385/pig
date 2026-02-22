@@ -16,25 +16,13 @@ Simple demo app using Plaid Sandbox:
    ```env
    PLAID_CLIENT_ID=your_client_id
    PLAID_SECRET=your_sandbox_secret
-   PLAID_ENV=sandbox
    PORT=3000
    ```
 3. Start backend:
    ```bash
    node server.js
    ```
-4. Confirm backend health:
-   ```bash
-   curl http://localhost:3000/health
-   ```
-5. Open `index.html` in your browser.
-
-## Troubleshooting
-
-- If the app says env variables are wrong, open `http://localhost:3000/health`.
-  - `credentials_loaded: true` means backend read your `.env`.
-- The UI now shows the backend/Plaid error message directly so you can see exactly what Plaid returned.
-- Transactions endpoint uses last 30 days to avoid Plaid date-range validation issues.
+4. Open `index.html` in your browser.
 
 ## Notes
 - This is intentionally lightweight for demo/hackathon use.
