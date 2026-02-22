@@ -19,3 +19,4 @@ A simple HTML website project.
 - Clean, semantic HTML
 - Basic CSS styling
 - Simple JavaScript setup
+# pig
