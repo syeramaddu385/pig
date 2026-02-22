@@ -1,40 +1,105 @@
+:root {
+  --pink: #f8c8dc;
+  --darkpink: #f4a6c1;
+  --cream: #fff6e9;
+  --accent: #ff8fb1;
+  --text: #51444a;
+}
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
+  margin: 0;
+  font-family: 'Quicksand', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
 }
 
-header {
-    background-color: #333;
-    color: #fff;
-    padding: 2rem;
-    text-align: center;
+.container {
+  background: white;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-header h1 {
-    font-size: 2.5rem;
+.logo {
+  margin: 0;
+  font-size: 34px;
+  color: var(--accent);
 }
 
-main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.subtitle {
+  margin-top: 6px;
 }
 
-footer {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    margin-top: 2rem;
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: var(--pink);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  background: var(--darkpink);
+}
+
+.status {
+  margin: 14px 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff3f8;
+}
+
+.totals {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.totals p {
+  margin: 4px 0;
+}
+
+.help {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.transactions {
+  display: grid;
+  gap: 10px;
+}
+
+.transaction-card {
+  border: 1px solid #efefef;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.transaction-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+select {
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-family: inherit;
 }
